@@ -1,20 +1,27 @@
 FROM ubuntu:20.04
 
 LABEL vendor=Gavin\ Pangu \
-      maintainer="kinist@gmail.com" \
+      maintainer="kinist@msn.com" \
       version="1.0.0" \
       buildtime="20220115" \
       description="DataX"
 
 ARG MAVEN_VERSION=3.8.4
 ARG DATAX_WEB_VERSION=2.1.2
+ARG DB_HOST=mysql
+ARG DB_PORT=3306
+ARG DB_USERNAME=root
+ARG DB_PASSWORD=mypassword
+ARG DB_DATABASE=datax_web
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN sed -i "s/archive.ubuntu.com/mirrors.aliyun.com/g" /etc/apt/sources.list && \
     sed -i "s/security.ubuntu.com/mirrors.aliyun.com/g" /etc/apt/sources.list
 
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends wget vim git openjdk-8-jdk-headless python net-tools inetutils-ping && \
+    apt-get install -y --no-install-recommends wget vim git tzdata openjdk-8-jdk-headless python net-tools inetutils-ping && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
@@ -47,11 +54,14 @@ RUN cd /opt/datax-web-v-${DATAX_WEB_VERSION} && mvn clean install && rm -rf /roo
     mv /opt/datax-web-v-${DATAX_WEB_VERSION}/build/datax-web-${DATAX_WEB_VERSION}.tar.gz /opt && rm -rf /opt/datax-web-v-${DATAX_WEB_VERSION} && \
     cd /opt && tar -zxvf datax-web-${DATAX_WEB_VERSION}.tar.gz && rm -f datax-web-${DATAX_WEB_VERSION}.tar.gz && \
     cd /opt/datax-web-${DATAX_WEB_VERSION}/bin && chmod 755 *.sh && ./install.sh --force && \
-    sed -i 's/#DB_HOST=/DB_HOST=mysql/g' /opt/datax-web-${DATAX_WEB_VERSION}/modules/datax-admin/conf/bootstrap.properties && \
-    sed -i 's/#DB_PORT=/DB_PORT=3306/g' /opt/datax-web-${DATAX_WEB_VERSION}/modules/datax-admin/conf/bootstrap.properties && \
-    sed -i 's/#DB_USERNAME=/DB_USERNAME=root/g' /opt/datax-web-${DATAX_WEB_VERSION}/modules/datax-admin/conf/bootstrap.properties && \
-    sed -i 's/#DB_PASSWORD=/DB_PASSWORD=mypassword/g' /opt/datax-web-${DATAX_WEB_VERSION}/modules/datax-admin/conf/bootstrap.properties && \
-    sed -i 's/#DB_DATABASE=/DB_DATABASE=datax_web/g' /opt/datax-web-${DATAX_WEB_VERSION}/modules/datax-admin/conf/bootstrap.properties
+    ## 修改数据库信息
+    sed -i 's/#DB_HOST=/DB_HOST='${DB_HOST}'/g' /opt/datax-web-${DATAX_WEB_VERSION}/modules/datax-admin/conf/bootstrap.properties && \
+    sed -i 's/#DB_PORT=/DB_PORT='${DB_PORT}'/g' /opt/datax-web-${DATAX_WEB_VERSION}/modules/datax-admin/conf/bootstrap.properties && \
+    sed -i 's/#DB_USERNAME=/DB_USERNAME='${DB_USERNAME}'/g' /opt/datax-web-${DATAX_WEB_VERSION}/modules/datax-admin/conf/bootstrap.properties && \
+    sed -i 's/#DB_PASSWORD=/DB_PASSWORD='${DB_PASSWORD}'/g' /opt/datax-web-${DATAX_WEB_VERSION}/modules/datax-admin/conf/bootstrap.properties && \
+    sed -i 's/#DB_DATABASE=/DB_DATABASE='${DB_DATABASE}'/g' /opt/datax-web-${DATAX_WEB_VERSION}/modules/datax-admin/conf/bootstrap.properties && \
+    ## 修改DataX启动Python信息
+    sed -i 's/PYTHON_PATH=/PYTHON_PATH=\/opt\/datax\/bin\/datax.py/g' /opt/datax-web-${DATAX_WEB_VERSION}/modules/datax-executor/bin/env.properties
 
 WORKDIR /opt/datax-web-${DATAX_WEB_VERSION}/bin
 

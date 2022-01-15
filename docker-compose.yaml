@@ -12,7 +12,7 @@ services:
     networks:
       - default
     ports:
-     - 9527:9527
+      - 9527:9527
     command: bash -c "./start-all.sh && tail -f /dev/null"
 
   mysql:
@@ -40,9 +40,9 @@ services:
       - mysql
     restart: unless-stopped
     environment:
-      PMA_HOST: mysql
-      TZ: Asia/Shanghai
+      - PMA_HOST=mysql
+      - TZ=Asia/Shanghai
     networks:
       - default
     ports:
-      - 8882:80
+      - 8887:80
