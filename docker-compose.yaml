@@ -1,0 +1,48 @@
+version: "3"
+services:
+  datax:
+    build: ./build
+    image: datax:3
+    container_name: datax
+    depends_on:
+      - mysql
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    networks:
+      - default
+    ports:
+     - 9527:9527
+    command: bash -c "./start-all.sh && tail -f /dev/null"
+
+  mysql:
+    image: mysql:5.7.36
+    container_name: mysql-5.7.36
+#   user: 999:999
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=mypassword
+      - TZ=Asia/Shanghai
+    networks:
+      - default
+#    ports:
+#      - 3306:3306
+    volumes:
+      - ./persistence/mysql/data:/var/lib/mysql
+      - ./persistence/mysql/conf:/etc/mysql/conf.d
+      - ./persistence/mysql/logs:/var/log/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  phpmyadmin:
+    image: phpmyadmin:5.1.1
+    container_name: phpmyadmin-5.1.1
+    depends_on:
+      - mysql
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      TZ: Asia/Shanghai
+    networks:
+      - default
+    ports:
+      - 8882:80
