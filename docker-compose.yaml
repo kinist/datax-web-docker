@@ -34,7 +34,7 @@ services:
     command: --default-authentication-plugin=mysql_native_password
 
   phpmyadmin:
-    image: phpmyadmin:5.1.1-fpm-alpine
+    image: phpmyadmin:5.1.1
     container_name: phpmyadmin-5.1.1
     depends_on:
       - mysql
